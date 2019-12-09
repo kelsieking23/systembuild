@@ -6,7 +6,7 @@ Assumes the .pdb file to be edited does not currently have chain information.
 ***
 * filename: the path to the .pdb file to be edited
 * newfilename: the path to the resulting .pdb filename
-* cterm: the c-terminal residue number 
+* cterm: the c-terminal residue NAME 
 ***
 '''
 def add_chainid(filename, newfilename, cterm):
@@ -27,26 +27,27 @@ def add_chainid(filename, newfilename, cterm):
         if 'ATOM' in line: # check for ATOM line
             line_parts = line.split()
             res_num = line_parts[4] # current residue number
-            if int(res_num) % cterm == 0: # check if the residue number is the last in the chain
+            res_name = line_parts[3]
+            if res_name == cterm: # check if the residue number is the last in the chain
                 parts = contents[i+1].split() # check next atom info
                 if 'TER' not in parts: # check that next line is an atom
                     next_resnum = parts[4]
-                else:
-                    # format the new line with chain ID, append to newcontents
-                    if len(line_parts[2]) < 4: 
-                        line_format = '{:<4s}{:>7s}  {:<3} {:>3s} ' + chain_id + '{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
-                        formatted_list = line_format.format(*line_parts)
-                        new_contents.append(formatted_list)
-                    if len(line_parts[2]) == 4:
-                        line_format = '{:<4s}{:>7s} {:<4} {:>3s} ' + chain_id + '{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
-                        formatted_list = line_format.format(*line_parts)
-                        new_contents.append(formatted_list)
-                    if next_resnum != res_num: # check if the next atom is on the next chain
-                        chain_id = chr(ord(chain_id) + 1) # increment chain ID
+                    print(next_resnum)
+                # format the new line with chain ID, append to newcontents
+                if len(line_parts[2]) < 4: 
+                    line_format = '{:<4s}{:>7s}  {:<3} {:>3s} ' + chain_id + '{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
+                    formatted_list = line_format.format(*line_parts)
+                    new_contents.append(formatted_list)
+                if len(line_parts[2]) == 4:
+                    line_format = '{:<4s}{:>7s} {:<4} {:>3s} ' + chain_id + '{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
+                    formatted_list = line_format.format(*line_parts)
+                    new_contents.append(formatted_list)
+                if next_resnum != res_num: # check if the next atom is on the next chain
+                    print('hellooooo')
+                    chain_id = chr(ord(chain_id) + 1) # increment chain ID
             else:
                 # format the new line with chain ID, append to new_contents
                 if len(line_parts[2]) < 4:
-                    print(line)
                     line_format = '{:<4s}{:>7s}  {:<3} {:>3s} ' + chain_id + '{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
                     formatted_list = line_format.format(*line_parts)
                     new_contents.append(formatted_list)
@@ -77,15 +78,15 @@ Returns a list containing edited file contents.
 ***
 * filename: the path to the .pdb file to be edited
 * newfilename: the path to the resulting .pdb filename
-* cterm: the c-terminal residue number 
-* nterm: the n-terminal residue number
+* cterm: the c-terminal NAME
+* nterm: the n-terminal residue NUMBER
 ***
 '''     
 def renumber_pdb(filename, newfilename, nterm, cterm):
     # initialize variables
     contents = [] # hold .pdb file contents
     new_contents = [] # hold edited contents
-    num = 1 # hold current residue number
+    num = nterm # hold current residue number
     i = 0 # iterator
     
     # open .pdb, append contents to contents list
@@ -99,7 +100,8 @@ def renumber_pdb(filename, newfilename, nterm, cterm):
         if 'ATOM' in line: # check for atom line
             line_parts = line.split() # hold line contents
             res_num = line_parts[5] # hold current residue number
-            if int(res_num) % cterm == 0: # check if current residue is the last in the chain
+            res_name = line_parts[3]
+            if res_name == cterm: # check if current residue is the last in the chain
                 parts = contents[i+1].split() # check next atom 
                 if 'TER' not in parts: # check if next atom is atom
                     next_resnum = int(parts[5]) # hold next residue number
@@ -123,7 +125,6 @@ def renumber_pdb(filename, newfilename, nterm, cterm):
                     next_resnum = parts[5] # hold next residue number
                 # format the new line with appropriate residue number, append to newcontents
                 if len(line_parts[2]) < 4: 
-                    print(line)
                     line_parts[5] = str(num)
                     line_format = '{:<4s}{:>7s}  {:<3} {:>3s} {:1s}{:>4s}    {:>8s}{:>8s}{:>8s}  {:>3s}  {:>3s}'
                     formatted_list = line_format.format(*line_parts)
@@ -149,5 +150,3 @@ def renumber_pdb(filename, newfilename, nterm, cterm):
 
     # return list of edited contents
     return new_contents
-        
-
